@@ -96,26 +96,18 @@ class DFPExternalStorage(Document):
         # Recheck S3 connection if needed
         previous = self.get_doc_before_save()
         if previous:
-            if self.files_within and has_changed(
-                self, previous, DFP_EXTERNAL_STORAGE_CRITICAL_FIELDS
-            ):
+            if self.files_within and has_changed(self, previous, DFP_EXTERNAL_STORAGE_CRITICAL_FIELDS):
                 frappe.msgprint(
                     _(
                         "There are {} files using this bucket. The field you just updated is critical, be careful!"
                     ).format(self.files_within)
                 )
-        if not previous or has_changed(
-            self, previous, DFP_EXTERNAL_STORAGE_CONNECTION_FIELDS
-        ):
+        if not previous or has_changed(self, previous, DFP_EXTERNAL_STORAGE_CONNECTION_FIELDS):
             self.validate_bucket()
 
     def on_trash(self):
         if self.files_within:
-            frappe.throw(
-                _("Can not be deleted. There are {} files using this bucket.").format(
-                    self.files_within
-                )
-            )
+            frappe.throw(_("Can not be deleted. There are {} files using this bucket.").format(self.files_within))
 
     @cached_property
     def setting_stream_buffer_size(self):
@@ -124,29 +116,17 @@ class DFPExternalStorage(Document):
     @cached_property
     def setting_cache_files_smaller_than(self):
         "Default: 5Mb"
-        return (
-            self.cache_files_smaller_than
-            if self.cache_files_smaller_than >= 0
-            else 5000000
-        )
+        return self.cache_files_smaller_than if self.cache_files_smaller_than >= 0 else 5000000
 
     @cached_property
     def setting_cache_expiration_secs(self):
         "Default: 1 day"
-        return (
-            self.cache_expiration_secs
-            if self.cache_expiration_secs >= 0
-            else 60 * 60 * 24
-        )
+        return self.cache_expiration_secs if self.cache_expiration_secs >= 0 else 60 * 60 * 24
 
     @cached_property
     def setting_presigned_url_expiration(self):
         "Default: 3 hours"
-        return (
-            self.presigned_url_expiration
-            if self.presigned_url_expiration > 0
-            else 60 * 60 * 3
-        )
+        return self.presigned_url_expiration if self.presigned_url_expiration > 0 else 60 * 60 * 3
 
     @cached_property
     def files_within(self):
@@ -163,9 +143,7 @@ class DFPExternalStorage(Document):
                 if self.is_new() and self.secret_key:
                     key_secret = self.secret_key
                 else:
-                    key_secret = get_decrypted_password(
-                        "DFP External Storage", self.name, "secret_key"
-                    )
+                    key_secret = get_decrypted_password("DFP External Storage", self.name, "secret_key")
                 if key_secret:
                     return MinioConnection(
                         endpoint=self.endpoint,
@@ -182,9 +160,7 @@ class DFPExternalStorage(Document):
 
 
 class MinioConnection:
-    def __init__(
-        self, endpoint: str, access_key: str, secret_key: str, region: str, secure: bool
-    ):
+    def __init__(self, endpoint: str, access_key: str, secret_key: str, region: str, secure: bool):
         self.client = Minio(
             endpoint=endpoint,
             access_key=access_key,
@@ -196,15 +172,13 @@ class MinioConnection:
     def validate_bucket(self, bucket_name: str):
         try:
             if self.client.bucket_exists(bucket_name):
-                frappe.msgprint(
-                    _("Great! Bucket is accesible ;)"), indicator="green", alert=True
-                )
+                frappe.msgprint(_("Great! Bucket is accesible ;)"), indicator="green", alert=True)
                 return True
             else:
                 frappe.throw(_("Bucket not found"))
         except Exception as e:
             if hasattr(e, "message"):
-                frappe.throw(_("Error when looking for bucket: {}".format(e.message)))
+                frappe.throw(_("Error when looking for bucket: {}").format(e.message))
             elif hasattr(e, "reason"):
                 frappe.throw(str(e))
         return False
@@ -216,9 +190,7 @@ class MinioConnection:
         :param object_name: Object name in the bucket.
         :param version_id: Version ID of the object.
         """
-        return self.client.remove_object(
-            bucket_name=bucket_name, object_name=object_name
-        )
+        return self.client.remove_object(bucket_name=bucket_name, object_name=object_name)
 
     def stat_object(self, bucket_name: str, object_name: str):
         """
@@ -229,9 +201,7 @@ class MinioConnection:
         """
         return self.client.stat_object(bucket_name=bucket_name, object_name=object_name)
 
-    def get_object(
-        self, bucket_name: str, object_name: str, offset: int = 0, length: int = 0
-    ):
+    def get_object(self, bucket_name: str, object_name: str, offset: int = 0, length: int = 0):
         """
         Minio params:
         :param bucket_name: Name of the bucket.
@@ -264,13 +234,9 @@ class MinioConnection:
         :param temp_file_path: Path to a temporary file
         :return: :class:`urllib3.response.HTTPResponse` object.
         """
-        return self.client.fget_object(
-            bucket_name=bucket_name, object_name=object_name, file_path=file_path
-        )
+        return self.client.fget_object(bucket_name=bucket_name, object_name=object_name, file_path=file_path)
 
-    def presigned_get_object(
-        self, bucket_name: str, object_name: str, expires: int = timedelta(hours=3)
-    ):
+    def presigned_get_object(self, bucket_name: str, object_name: str, expires: int = timedelta(hours=3)):
         """
         Minio params:
         Get presigned URL of an object to download its data with expiry time
@@ -302,9 +268,7 @@ class MinioConnection:
         """
         if isinstance(expires, int):
             expires = timedelta(seconds=expires)
-        return self.client.presigned_get_object(
-            bucket_name=bucket_name, object_name=object_name, expires=expires
-        )
+        return self.client.presigned_get_object(bucket_name=bucket_name, object_name=object_name, expires=expires)
 
     def put_object(self, bucket_name, object_name, data, metadata=None, length=-1):
         """
@@ -353,15 +317,11 @@ class MinioConnection:
 
 class DFPExternalStorageFile(File):
     def __init__(self, *args, **kwargs):
-        super(DFPExternalStorageFile, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def is_remote_file(self):
-        return (
-            True
-            if self.dfp_external_storage_s3_key
-            else super(DFPExternalStorageFile, self).is_remote_file
-        )
+        return True if self.dfp_external_storage_s3_key else super().is_remote_file
 
     @cached_property
     def dfp_external_storage_doc(self):
@@ -369,9 +329,7 @@ class DFPExternalStorageFile(File):
         # 1. Use defined
         if self.dfp_external_storage:
             try:
-                dfp_ext_strg_doc = frappe.get_doc(
-                    "DFP External Storage", self.dfp_external_storage
-                )
+                dfp_ext_strg_doc = frappe.get_doc("DFP External Storage", self.dfp_external_storage)
             except Exception:
                 pass
         if not dfp_ext_strg_doc:
@@ -389,9 +347,7 @@ class DFPExternalStorageFile(File):
                     filters={"folder": "Home"},
                 )
             if dfp_ext_strg_name:
-                dfp_ext_strg_doc = frappe.get_doc(
-                    "DFP External Storage", dfp_ext_strg_name
-                )
+                dfp_ext_strg_doc = frappe.get_doc("DFP External Storage", dfp_ext_strg_name)
         return dfp_ext_strg_doc
 
     def dfp_is_s3_remote_file(self):
@@ -403,16 +359,12 @@ class DFPExternalStorageFile(File):
             not self.is_private
             and self.dfp_external_storage_doc.setting_cache_files_smaller_than
             and self.dfp_file_size != 0
-            and self.dfp_file_size
-            < self.dfp_external_storage_doc.setting_cache_files_smaller_than
+            and self.dfp_file_size < self.dfp_external_storage_doc.setting_cache_files_smaller_than
         )
 
     @cached_property
     def dfp_file_size(self) -> int:
-        if (
-            self.dfp_is_s3_remote_file()
-            and self.dfp_external_storage_doc.remote_size_enabled
-        ):
+        if self.dfp_is_s3_remote_file() and self.dfp_external_storage_doc.remote_size_enabled:
             try:
                 object_info = self.dfp_external_storage_doc.client.stat_object(
                     bucket_name=self.dfp_external_storage_doc.bucket_name,
@@ -420,9 +372,7 @@ class DFPExternalStorageFile(File):
                 )
                 return object_info.size
             except Exception:
-                frappe.log_error(
-                    title=f"Error getting remote file size: {self.dfp_external_storage_s3_key}"
-                )
+                frappe.log_error(title=f"Error getting remote file size: {self.dfp_external_storage_s3_key}")
         return self.file_size
 
     @cached_property
@@ -436,10 +386,7 @@ class DFPExternalStorageFile(File):
             self.attached_to_doctype
             and self.dfp_external_storage_doc
             and self.attached_to_doctype
-            in [
-                i.doctype_to_ignore
-                for i in self.dfp_external_storage_doc.doctypes_ignored
-            ]
+            in [i.doctype_to_ignore for i in self.dfp_external_storage_doc.doctypes_ignored]
         ):
             frappe.msgprint(
                 _(
@@ -456,10 +403,7 @@ class DFPExternalStorageFile(File):
         if self.dfp_external_storage_ignored_doctypes():
             self.dfp_external_storage = ""
             return False
-        if (
-            not self.dfp_external_storage_doc
-            or not self.dfp_external_storage_doc.enabled
-        ):
+        if not self.dfp_external_storage_doc or not self.dfp_external_storage_doc.enabled:
             return False
         if self.is_folder:
             return False
@@ -467,9 +411,7 @@ class DFPExternalStorageFile(File):
             # File already on S3
             return False
         if self.file_url and self.file_url.startswith(URL_PREFIXES):
-            raise NotImplementedError(
-                "http(s)://file(s) not ready to be saved to local or external storage(s)."
-            )
+            raise NotImplementedError("http(s)://file(s) not ready to be saved to local or external storage(s).")
 
         original_file_url = self.file_url
 
@@ -529,10 +471,7 @@ class DFPExternalStorageFile(File):
             return
         error_msg = _("Error deleting file in remote folder.")
         # Only delete if connection is enabled
-        if (
-            not self.dfp_external_storage_doc
-            or not self.dfp_external_storage_doc.enabled
-        ):
+        if not self.dfp_external_storage_doc or not self.dfp_external_storage_doc.enabled:
             error_extra = _("Write disabled for connection <strong>{}</strong>").format(
                 self.dfp_external_storage_doc.title
             )
@@ -544,7 +483,7 @@ class DFPExternalStorageFile(File):
             )
         except Exception as e:
             frappe.log_error(f"{error_msg}: {self.file_name}", message=e)
-            frappe.throw(f"{error_msg} {str(e)}")
+            frappe.throw(error_msg)
 
     def dfp_external_storage_download_to_file(self, local_file):
         """
@@ -562,9 +501,7 @@ class DFPExternalStorageFile(File):
                 file_path=local_file,
             )
         except Exception as e:
-            error_msg = _(
-                "Error downloading to file from remote folder. Check Error Log for more information."
-            )
+            error_msg = _("Error downloading to file from remote folder. Check Error Log for more information.")
             frappe.log_error(title=f"{error_msg}: {self.file_name}", message=e)
             frappe.throw(error_msg)
 
@@ -619,39 +556,27 @@ class DFPExternalStorageFile(File):
             self.dfp_external_storage_s3_key = ""
             self.dfp_external_storage = ""
 
-            with self.dfp_external_storage_client.get_object(
-                bucket_name=bucket, object_name=key
-            ) as response:
+            with self.dfp_external_storage_client.get_object(bucket_name=bucket, object_name=key) as response:
                 self._content = response.read()
             self.save_file_on_filesystem()
 
-            self.dfp_external_storage_client.remove_object(
-                bucket_name=bucket, object_name=key
-            )
+            self.dfp_external_storage_client.remove_object(bucket_name=bucket, object_name=key)
         except Exception:
             error_msg = _("Error downloading and removing file from remote folder.")
             frappe.log_error(title=f"{error_msg}: {self.file_name}")
             frappe.throw(error_msg)
 
     def validate_file_on_disk(self):
-        return (
-            True
-            if self.dfp_is_s3_remote_file()
-            else super(DFPExternalStorageFile, self).validate_file_on_disk()
-        )
+        return True if self.dfp_is_s3_remote_file() else super().validate_file_on_disk()
 
     def exists_on_disk(self):
-        return (
-            False
-            if self.dfp_is_s3_remote_file()
-            else super(DFPExternalStorageFile, self).exists_on_disk()
-        )
+        return False if self.dfp_is_s3_remote_file() else super().exists_on_disk()
 
     @frappe.whitelist()
     def optimize_file(self):
         if self.dfp_is_s3_remote_file():
             raise NotImplementedError("Only local image files can be optimized")
-        super(DFPExternalStorageFile, self).optimize_file()
+        super().optimize_file()
 
     def _remote_file_local_path_get(self):
         return f"/{DFP_EXTERNAL_STORAGE_URL_SEGMENT_FOR_FILE_LOAD}/{self.name}/{self.file_name}"
@@ -667,14 +592,10 @@ class DFPExternalStorageFile(File):
             dfp_es_file_renderer = DFPExternalStorageFileRenderer(path=self.file_url)
             if not dfp_es_file_renderer.can_render():
                 return
-            s3_data = frappe.get_value(
-                "File", dfp_es_file_renderer.file_id_get(), fieldname="*"
-            )
+            s3_data = frappe.get_value("File", dfp_es_file_renderer.file_id_get(), fieldname="*")
             if s3_data:
                 self.dfp_external_storage = s3_data["dfp_external_storage"]
-                self.dfp_external_storage_s3_key = s3_data[
-                    "dfp_external_storage_s3_key"
-                ]
+                self.dfp_external_storage_s3_key = s3_data["dfp_external_storage_s3_key"]
                 self.content_hash = s3_data["content_hash"]
                 self.file_size = s3_data["file_size"]
                 # It is "duplicated" within Frappe but not in S3 😏
@@ -685,7 +606,7 @@ class DFPExternalStorageFile(File):
     def get_content(self) -> bytes:
         self.dfp_file_url_is_s3_location_check_if_s3_data_is_not_defined()
         if not self.dfp_is_s3_remote_file():
-            return super(DFPExternalStorageFile, self).get_content()
+            return super().get_content()
         try:
             if not self.is_downloadable():
                 raise Exception("File not available")
@@ -701,27 +622,14 @@ class DFPExternalStorageFile(File):
             return content_type
 
     def dfp_presigned_url_get(self):
-        if (
-            not self.dfp_is_s3_remote_file()
-            or not self.dfp_external_storage_doc.presigned_urls
-        ):
+        if not self.dfp_is_s3_remote_file() or not self.dfp_external_storage_doc.presigned_urls:
             return
-        if (
-            self.dfp_external_storage_doc.presigned_mimetypes_starting
-            and self.dfp_mime_type_guess_by_file_name
-        ):
+        if self.dfp_external_storage_doc.presigned_mimetypes_starting and self.dfp_mime_type_guess_by_file_name:
             # get list exploding by new line, removing empty lines and cleaning starting and ending spaces
             presigned_mimetypes_starting = [
-                i.strip()
-                for i in self.dfp_external_storage_doc.presigned_mimetypes_starting.split(
-                    "\n"
-                )
-                if i.strip()
+                i.strip() for i in self.dfp_external_storage_doc.presigned_mimetypes_starting.split("\n") if i.strip()
             ]
-            if not any(
-                self.dfp_mime_type_guess_by_file_name.startswith(i)
-                for i in presigned_mimetypes_starting
-            ):
+            if not any(self.dfp_mime_type_guess_by_file_name.startswith(i) for i in presigned_mimetypes_starting):
                 return
         return self.dfp_external_storage_client.presigned_get_object(
             bucket_name=self.dfp_external_storage_doc.bucket_name,
@@ -745,11 +653,7 @@ def hook_file_before_save(doc, method):
     # MODIFY "File"
 
     # MODIFY "File": Case 1: Existent local file + new storage selected => upload to remote
-    if (
-        not doc.dfp_external_storage_s3_key
-        and doc.dfp_external_storage
-        and not previous.dfp_external_storage
-    ):
+    if not doc.dfp_external_storage_s3_key and doc.dfp_external_storage and not previous.dfp_external_storage:
         doc.dfp_external_storage_upload_file()
 
     # MODIFY "File": Case 2: Existent remote file + no storage selected => download to local + remove from remote
@@ -769,9 +673,7 @@ def hook_file_before_save(doc, method):
             # TODO: Maybe we should left in old remote?? and we should check if old remote allows the doctype??
             if doc.dfp_external_storage_ignored_doctypes():
                 previous.download_to_local_and_remove_remote()
-                doc.file_url = (
-                    previous.file_url
-                )  # << contains local file path downloaded
+                doc.file_url = previous.file_url  # << contains local file path downloaded
                 doc.dfp_external_storage_s3_key = ""
                 doc.dfp_external_storage = ""
             # MODIFY "File": Case 3.2.: new remote + allowed doctype => stream from old to new remote + delete from old remote
@@ -870,11 +772,7 @@ def file(name: str, file: str):
                 frappe.flags.redirect_location = presigned_url
                 raise frappe.Redirect
             # Do not stream file if cacheable or smaller than stream buffer chunks size
-            if (
-                doc.dfp_is_cacheable()
-                or doc.dfp_file_size
-                < doc.dfp_external_storage_doc.setting_stream_buffer_size
-            ):
+            if doc.dfp_is_cacheable() or doc.dfp_file_size < doc.dfp_external_storage_doc.setting_stream_buffer_size:
                 response_values["response"] = doc.dfp_external_storage_download_file()
             else:
                 response_values["response"] = doc.dfp_external_storage_stream_file()

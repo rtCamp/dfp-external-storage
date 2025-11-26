@@ -5,9 +5,7 @@ from frappe.utils import update_progress_bar
 
 
 @click.command("upload-to-s3", help="Upload existing files to S3 External Storage")
-@click.option(
-    "--batch-size", default=1000, help="Number of files to process per batch."
-)
+@click.option("--batch-size", default=1000, help="Number of files to process per batch.")
 @click.option("--limit", default=0, help="Total max files to process (0 = no limit).")
 @pass_context
 def upload_to_s3(context, batch_size, limit):
@@ -58,9 +56,7 @@ def upload_to_s3(context, batch_size, limit):
                 failed_ids.append(file_name)
                 click.echo(f"Failed to upload: {file_name}", err=True)
 
-            update_progress_bar(
-                "Uploading files to S3...", processed + index, total_to_process
-            )
+            update_progress_bar("Uploading files to S3...", processed + index, total_to_process)
 
         processed += len(files)
 
