@@ -1,0 +1,78 @@
+exclude: 'node_modules|.git'
+default_stages: [pre-commit]
+fail_fast: false
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        files: "dfp_external_storage.*"
+        exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-ast
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.5
+    hooks:
+      - id: ruff
+        name: "Run ruff import sorter"
+        args: ["--select=I", "--fix"]
+
+      - id: ruff
+        name: "Run ruff linter"
+
+      - id: ruff-format
+        name: "Run ruff formatter"
+
+  - repo: local
+    hooks:
+      - id: clone-local-repo
+        name: clone-local-repo
+        entry: bash -c 'TARGET_DIR=".frappe-semgrep" && [ ! -d "$TARGET_DIR" ] && git clone "https://github.com/frappe/semgrep-rules" "$TARGET_DIR" || true'
+        language: system
+        always_run: true
+
+  - repo: https://github.com/semgrep/pre-commit
+    rev: 'v1.142.2'
+    hooks:
+      - id: semgrep-ci
+        args: ['--config', './.frappe-semgrep/rules', '--config','r/python.lang.correctness','--error', '--skip-unknown-extensions', '--metrics','off']
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        types_or: [javascript, vue, scss]
+        # Ignore any files that might contain jinja / bundles
+        exclude: |
+            (?x)^(
+                dfp_external_storage/public/dist/.*|
+                .*node_modules.*|
+                .*boilerplate.*|
+                dfp_external_storage/templates/includes/.*|
+                dfp_external_storage/public/js/lib/.*
+            )$
+
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.39.1
+    hooks:
+      - id: eslint
+        types_or: [javascript]
+        args: ['--quiet']
+        # Ignore any files that might contain jinja / bundles
+        exclude: |
+            (?x)^(
+                dfp_external_storage/public/dist/.*|
+                cypress/.*|
+                .*node_modules.*|
+                .*boilerplate.*|
+                dfp_external_storage/templates/includes/.*|
+                dfp_external_storage/public/js/lib/.*
+            )$
