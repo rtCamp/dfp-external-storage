@@ -43,50 +43,28 @@ class DFPS3BucketList {
       fieldname: "storage",
       fieldtype: "Link",
       options: "DFP External Storage",
-      // TODO: auto select the first one available
-      // default: null,
+
       default: frappe.get_route().length > 1 ? frappe.get_route()[1] : null,
-      // default: 'DFP.ES.dfp-external-storage.230710.01',
+
       reqd: 1,
       change: () => {
-        // debugger
         frappe.set_route("dfp-s3-bucket-list", this.storage.get_value());
-        // if (this.storage.get_value() !== frappe.get_route()[1]) {
-        // 	this.storage.set_value(frappe.get_route()[1])
-        // }
-        // debugger
-        // this.refresh_files()
-        // debugger
       },
     });
-    // console.log(this.storage.get_value())
-    // this.storage.refresh()
-    // console.log(this.storage.get_value())
-    // debugger
+
     this.template = this.page.add_field({
       label: __("View mode"),
       fieldname: "template",
       fieldtype: "Select",
-      options: [
-        { label: "List", value: "list" },
-        // TODO: Create grid view ¿?
-        // { label: 'Grid', value: 'grid' },
-      ],
+      options: [{ label: "List", value: "list" }],
       default: "list",
       reqd: 1,
-      // change: () => this.refresh_files(),
     });
     this.file_type = this.page.add_field({
       label: __("File type"),
       fieldname: "type",
       fieldtype: "Select",
-      options: [
-        { label: "All files", value: "all" },
-        // TODO: set file filters!
-        // { label: 'Images', value: 'image' },
-        // { label: 'Videos', value: 'video' },
-        // { label: 'PDFs', value: 'pdf' },
-      ],
+      options: [{ label: "All files", value: "all" }],
       default: "all",
       change: () => this.refresh_files(),
     });
@@ -105,31 +83,14 @@ class DFPS3BucketList {
 
   show() {
     this.refresh_files();
-    // this.update_scheduler_status()
   }
-
-  // update_scheduler_status() {
-  // 	frappe.call({
-  // 		method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
-  // 		callback: (r) => {
-  // 			let { status } = r.message;
-  // 			if (status === 'active') {
-  // 				this.page.set_indicator(__('Scheduler: Active'), 'green')
-  // 			} else {
-  // 				this.page.set_indicator(__('Scheduler: Inactive'), 'red')
-  // 			}
-  // 		},
-  // 	})
-  // }
 
   refresh_files() {
     let template = this.template.get_value();
-    // TODO: why is not working .get_value()??
-    // let storage = this.storage.get_value()
-    // let storage = this.storage.value
+
     let storage = frappe.get_route()[1];
     let file_type = this.file_type.get_value();
-    // let test = this.page.get_form_values()
+
     let args = { storage, template, file_type };
 
     this.page.add_inner_message(__("Refreshing..."));
@@ -148,7 +109,6 @@ class DFPS3BucketList {
 
         let auto_refresh = this.auto_refresh.get_value();
 
-        // if (frappe.get_route()[0] === 'dfp-s3-bucket-list' && auto_refresh) {
         if (frappe.get_route()[0] === "dfp-s3-bucket-list" && auto_refresh) {
           setTimeout(() => this.refresh_files(), 2000);
         }
