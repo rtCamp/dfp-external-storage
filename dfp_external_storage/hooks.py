@@ -1,5 +1,3 @@
-from . import __version__ as app_version
-
 app_name = "dfp_external_storage"
 app_title = "DFP External Storage"
 app_publisher = "DFP"
@@ -42,7 +40,7 @@ app_include_css = "dfp_external_storage.app.bundle.css"
 
 # website user home page (by Role)
 # role_home_page = {
-#	"Role": "home_page"
+# "Role": "home_page"
 # }
 
 # Generators
@@ -98,11 +96,11 @@ app_include_css = "dfp_external_storage.app.bundle.css"
 # 	"ToDo": "custom_app.overrides.CustomToDo"
 # }
 override_doctype_class = {
-	"File": "dfp_external_storage.dfp_external_storage.doctype.dfp_external_storage.dfp_external_storage.DFPExternalStorageFile",
+    "File": "dfp_external_storage.dfp_external_storage.doctype.dfp_external_storage.dfp_external_storage.DFPExternalStorageFile",
 }
 
 page_renderer = [
-	"dfp_external_storage.dfp_external_storage.doctype.dfp_external_storage.dfp_external_storage.DFPExternalStorageFileRenderer",
+    "dfp_external_storage.dfp_external_storage.doctype.dfp_external_storage.dfp_external_storage.DFPExternalStorageFileRenderer",
 ]
 
 # Document Events
@@ -114,17 +112,17 @@ page_renderer = [
 # 		"on_update": "method",
 # 		"on_cancel": "method",
 # 		"on_trash": "method"
-#	}
+# }
 # }
 
 # DFP: More info about doc event hooks: https://frappeframework.com/docs/v13/user/en/basics/doctypes/controllers
 doc_events = {
-	"File": {
-		# TODO: Remove below line after 2025.01.01
-		# "on_update": "dfp_external_storage.dfp_external_storage.doctype.dfp_external_storage.dfp_external_storage.hook_file_on_update",
-		"before_save": "dfp_external_storage.dfp_external_storage.doctype.dfp_external_storage.dfp_external_storage.hook_file_before_save",
-		"after_delete": "dfp_external_storage.dfp_external_storage.doctype.dfp_external_storage.dfp_external_storage.hook_file_after_delete",
-	}
+    "File": {
+        # TODO: Remove below line after 2025.01.01
+        # "on_update": "dfp_external_storage.dfp_external_storage.doctype.dfp_external_storage.dfp_external_storage.hook_file_on_update",
+        "before_save": "dfp_external_storage.dfp_external_storage.doctype.dfp_external_storage.dfp_external_storage.hook_file_before_save",
+        "after_delete": "dfp_external_storage.dfp_external_storage.doctype.dfp_external_storage.dfp_external_storage.hook_file_after_delete",
+    }
 }
 
 # Scheduled Tasks
@@ -210,3 +208,5 @@ doc_events = {
 # Recommended only for DocTypes which have limited documents with untranslated names
 # For example: Role, Gender, etc.
 # translated_search_doctypes = []
+
+export_python_type_annotations = True
