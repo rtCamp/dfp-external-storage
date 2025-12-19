@@ -292,7 +292,6 @@ class MinioConnection:
             bucket_name=bucket_name,
             object_name=object_name,
             data=data,
-            user_metadata=metadata,
             length=length,
         )
 
