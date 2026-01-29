@@ -607,8 +607,8 @@ class DFPExternalStorageFile(File):
         if not self.dfp_is_s3_remote_file():
             return super().get_content()
         try:
-            if not self.is_downloadable():
-                raise Exception("File not available")
+            # if not self.is_downloadable():
+            #     raise Exception("File not available")
             return self.dfp_external_storage_download_file()
         except Exception:
             # If no document, no read permissions, etc. For security reasons do not give any information, so just raise a 404 error
