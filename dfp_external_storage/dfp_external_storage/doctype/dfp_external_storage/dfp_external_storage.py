@@ -602,13 +602,11 @@ class DFPExternalStorageFile(File):
         except Exception:
             pass
 
-    def get_content(self) -> bytes:
+    def get_content(self, encodings=None) -> bytes:
         self.dfp_file_url_is_s3_location_check_if_s3_data_is_not_defined()
         if not self.dfp_is_s3_remote_file():
-            return super().get_content()
+            return super().get_content(encodings=encodings)
         try:
-            if not self.is_downloadable():
-                raise Exception("File not available")
             return self.dfp_external_storage_download_file()
         except Exception:
             # If no document, no read permissions, etc. For security reasons do not give any information, so just raise a 404 error
