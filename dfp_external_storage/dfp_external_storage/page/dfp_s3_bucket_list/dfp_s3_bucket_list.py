@@ -5,7 +5,7 @@ import frappe
 
 
 @frappe.whitelist()
-def get_info(storage=None, template=None, file_type=None) -> list[dict]:
+def get_info(storage: str | None = None, template: str | None = None, file_type: str | None = None) -> list[dict]:
     files = []
 
     document = "DFP External Storage"
