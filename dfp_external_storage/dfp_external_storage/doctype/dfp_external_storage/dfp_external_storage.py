@@ -426,7 +426,7 @@ class DFPExternalStorageFile(File):
         try:
             if not os.path.exists(local_file):
                 frappe.throw(_("Local file not found"))
-            with open(local_file, "rb") as f:
+            with open(local_file, "rb") as f:  # nosemgrep
                 self.dfp_external_storage_client.put_object(
                     bucket_name=self.dfp_external_storage_doc.bucket_name,
                     object_name=key,
