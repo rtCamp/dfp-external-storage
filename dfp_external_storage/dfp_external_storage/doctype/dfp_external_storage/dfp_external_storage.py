@@ -741,6 +741,39 @@ class DFPExternalStorageFileRenderer:
         return file(name=file_id, file=file_name)
 
 
+def dfp_file_is_downloadable(doc: "File") -> bool:
+    """Return whether ``doc`` can be downloaded by the current user.
+
+    Mirrors ``frappe.core.doctype.file.utils.find_file_by_url``: the same remote
+    object can back several "File" documents (see ``dfp_external_storage_delete_file``).
+    ``File.is_downloadable`` only checks the document addressed by the URL, so if the
+    user lacks permission on that one, also check the sibling documents pointing at the
+    same remote object. If the file is accessible from any one of them, it is
+    downloadable.
+    """
+    if doc.is_downloadable():
+        return True
+
+    # Only remote (S3) files can be shared across "File" docs via the same key.
+    if not (doc.dfp_external_storage and doc.dfp_external_storage_s3_key):
+        return False
+
+    sibling_names = frappe.get_all(
+        "File",
+        filters={
+            "dfp_external_storage": doc.dfp_external_storage,
+            "dfp_external_storage_s3_key": doc.dfp_external_storage_s3_key,
+            "name": ("!=", doc.name),
+        },
+        pluck="name",
+    )
+    for sibling_name in sibling_names:
+        if frappe.get_doc("File", sibling_name).is_downloadable():
+            return True
+
+    return False
+
+
 def file(name: str, file: str):
     if not name or not file:
         raise frappe.PageDoesNotExistError()
@@ -757,7 +790,7 @@ def file(name: str, file: str):
         if doc.file_name != file:
             raise frappe.PageDoesNotExistError()
 
-        if not doc.is_downloadable():
+        if not dfp_file_is_downloadable(doc):
             raise frappe.PermissionError()
 
         response_values = {}
