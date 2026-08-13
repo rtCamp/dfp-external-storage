@@ -602,10 +602,10 @@ class DFPExternalStorageFile(File):
         except Exception:
             pass
 
-    def get_content(self, encodings=None) -> bytes:
+    def get_content(self) -> bytes:
         self.dfp_file_url_is_s3_location_check_if_s3_data_is_not_defined()
         if not self.dfp_is_s3_remote_file():
-            return super().get_content(encodings=encodings)
+            return super().get_content()
         try:
             return self.dfp_external_storage_download_file()
         except Exception:
