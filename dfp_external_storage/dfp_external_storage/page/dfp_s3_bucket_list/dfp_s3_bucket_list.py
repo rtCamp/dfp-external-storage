@@ -19,6 +19,7 @@ def get_info(storage: str | None = None, template: str | None = None, file_type:
             dfp_external_storage_doc = frappe.get_doc(document, last_id[0].name if last_id else None)
 
     if dfp_external_storage_doc:
+        dfp_external_storage_doc.check_permission("read")
         # dfp_external_storage_doc.remote_files_list(template, file_type)
         objects = dfp_external_storage_doc.remote_files_list()
         for file in objects:
